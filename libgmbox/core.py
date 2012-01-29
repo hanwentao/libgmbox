@@ -191,11 +191,13 @@ class Songlist(GmObject):
         info_node = dom.getElementsByTagName("info")
         if len(info_node) > 0:
             self.parse_node(info_node[0])
-        for childNode in dom.getElementsByTagName(song_tag)[0].childNodes:
-            if (childNode.nodeType == childNode.ELEMENT_NODE):
-                song = Song()
-                song.parse_node(childNode)
-                songs.append(song)
+        song_tag_node = dom.getElementsByTagName(song_tag)
+        if len(song_tag_node) > 0:
+            for childNode in song_tag_node[0].childNodes:
+                if (childNode.nodeType == childNode.ELEMENT_NODE):
+                    song = Song()
+                    song.parse_node(childNode)
+                    songs.append(song)
         return songs
 
     def parse_html(self, html):
