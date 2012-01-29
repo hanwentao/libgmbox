@@ -61,7 +61,7 @@ class GmObject():
             setattr(self, key, value)
 
     @staticmethod
-    def decode_html_text(text):
+    def decode_html_text(text, charset='utf-8'):
         '''转义html特殊符号'''
 
         html_escape_table = {
@@ -76,6 +76,8 @@ class GmObject():
         for key, value in html_escape_table.iteritems():
             text = text.replace(key, value)
         numbers = re.findall('&#([^;]+);', text)
+        if isinstance(text, str):
+            text = text.decode(charset)
         for number in numbers:
             text = text.replace("&#%s;" % number, unichr(int(number)))
         return text
