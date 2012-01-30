@@ -151,8 +151,12 @@ class Song(GmObject):
             logger.info('歌曲 %s，下载地址：%s', id, downloadUrl)
             return downloadUrl
         else:
-            logger.warning('短时间内请求次数太多了，可能出现验证码。')
-            return ""
+            if "请输入上面图片中的文字" in html:
+                logger.warning('短时间内请求次数太多了，可能出现验证码。')
+                return ""
+            else:
+                logger.warning('该歌曲不支持下载。')
+                return None
 
 class Songlist(GmObject):
     '''歌曲列表基本类，是歌曲(Song类）的集合
