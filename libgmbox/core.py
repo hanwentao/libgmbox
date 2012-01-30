@@ -151,7 +151,7 @@ class Song(GmObject):
             logger.info('歌曲 %s，下载地址：%s', id, downloadUrl)
             return downloadUrl
         else:
-            logger.warring('短时间内请求次数太多了，可能出现验证码。')
+            logger.warning('短时间内请求次数太多了，可能出现验证码。')
             return ""
 
 class Songlist(GmObject):
