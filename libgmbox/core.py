@@ -20,6 +20,14 @@ import logging
 import hashlib
 import urllib
 import re
+import subprocess
+import mechanize
+import Image
+import imgutils
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 def get_logger(logger_name):
     ''' 获得一个logger '''
@@ -143,20 +151,41 @@ class Song(GmObject):
         url = template % id
 
         logger.info('请求下载信息页地址：%s', url)
-        urlopener = urllib.urlopen(url)
-        html = urlopener.read()
-        matches = re.search('<a href="/(music/top100/url[^"]+)">', html)
-        if matches is not None:
-            downloadUrl = "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
-            logger.info('歌曲 %s，下载地址：%s', id, downloadUrl)
-            return downloadUrl
-        else:
-            if "请输入上面图片中的文字" in html:
-                logger.warning('短时间内请求次数太多了，可能出现验证码。')
-                return ""
+        browser = mechanize.Browser()
+        response = browser.open(url)
+        while True:
+            html = response.get_data()
+            matches = re.search('<a href="/(music/top100/url[^"]+)">', html)
+            if matches is not None:
+                downloadUrl = "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
+                logger.info('歌曲 %s，下载地址：%s', id, downloadUrl)
+                return downloadUrl
             else:
-                logger.warning('该歌曲不支持下载。')
-                return None
+                if "请输入上面图片中的文字" in html:
+                    matches = re.search('<img src="/(music/top100/captcha_image[^"]+?)" alt="" class="captchaImage">', html)
+                    if matches is not None:
+                        image_url = "http://www.google.cn/%s" % matches.group(1).replace("&amp;", "&")
+                        urlopener = urllib.urlopen(image_url)
+                        image_data = urlopener.read()
+                        image = Image.open(StringIO(image_data))
+                        cropped_image = imgutils.crop_blank(image, (255, 255, 255))
+                        cropped_image_buffer = StringIO()
+                        cropped_image.save(cropped_image_buffer, format='jpeg')
+                        lines = imgutils.jp2a(cropped_image_buffer.getvalue(), chars=' @@', invert=True)
+                        for line in lines:
+                            print line
+                        print urlopener.geturl()
+                        captcha = raw_input('Please input the word: ')
+                        browser.select_form(nr=0)
+                        browser['response'] = captcha
+                        response = browser.submit()
+                    else:
+                        # XXX: cannot get captcha image
+                        logger.warning('短时间内请求次数太多了，可能出现验证码。')
+                        return ""
+                else:
+                    logger.warning('该歌曲不支持下载。')
+                    return None
 
 class Songlist(GmObject):
     '''歌曲列表基本类，是歌曲(Song类）的集合
