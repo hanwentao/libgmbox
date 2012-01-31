@@ -152,6 +152,7 @@ class Song(GmObject):
 
         logger.info('请求下载信息页地址：%s', url)
         browser = mechanize.Browser()
+        browser.set_handle_robots(False)
         response = browser.open(url)
         while True:
             html = response.get_data()

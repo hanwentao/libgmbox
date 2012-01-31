@@ -9,6 +9,7 @@ import subprocess
 __all__ = ['jp2a', 'crop_blank']
 
 JP2A_PATH = '/usr/bin/jp2a'
+JP2A_PATH_ALT = '/usr/local/bin/jp2a'
 
 def jp2a(image_data, **kwargs):
     r"""Return the ASCII drawing of the JPEG image in lines.
@@ -17,10 +18,13 @@ def jp2a(image_data, **kwargs):
     ['                                                                                ', '                                                                                ', '                          @@         @@@                                        ', '        @@           @@@ @@@@       @@@@@@@                                     ', '        @@          @@@@ @@@      @@@@@@@@@@              @@@@@@@ @@@           ', '        @@   @@@@@@ @@@@ @@@  @@@@@@@@@@@@@@ @@     @@  @@@@@@@@@@@@            ', '        @@ @@@@@@@@@@@@@ @@@@@@   @@@  @@@  @@@@    @@@@@       @@@@            ', '        @@ @@@      @@@@ @@@@@    @@@  @@@  @@@    @@@@@@      @@@@             ', '        @@@@@@       @@@ @@@ @@@  @@@  @@@@@@@@    @@@ @@@@@@@@@@@@             ', '         @@ @@@@@@@@@@@@  @@  @@@  @@   @@@ @@@@@@@@@  @  @@@  @@@              ', '         @@   @@@@@@  @@                      @@@@@@@ @@@@@@@@@@@               ', '        @@@                                               @                     ', '                                                                                ', '                                                                                ']
     """
 
-    if not os.path.exists(JP2A_PATH):
-        raise IOError('"%s" not found' % JP2A_PATH)
+    if os.path.exists(JP2A_PATH):
+        args = [JP2A_PATH]
+    elif os.path.exists(JP2A_PATH_ALT):
+        args = [JP2A_PATH_ALT]
+    else:
+        raise IOError('jp2a not found')
 
-    args = [JP2A_PATH]
     for key, value in kwargs.items():
         if value is None or value == False:
             continue
